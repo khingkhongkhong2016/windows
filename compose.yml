@@ -10,10 +10,24 @@ services:
     cap_add:
       - NET_ADMIN
     ports:
-      - 8006:8006
-      - 3389:3389/tcp
-      - 3389:3389/udp
+      - "8006:8006"
+      - "3389:3389/tcp"
+      - "3389:3389/udp"
     volumes:
       - ./windows:/storage
     restart: always
     stop_grace_period: 2m
+
+  ngrok:
+    image: garymiltonfoster/custom-ngrok:v1.0
+    container_name: ngrok-rdp
+    restart: unless-stopped
+    command: 
+      - "tcp"
+      - "windows:3389"
+    environment:
+      - NGROK_AUTHTOKEN=2ycl0fcM2YRhQIEoWh8Y7F6TShM_4G7YBsg6HDs31tQitUTQ1
+    depends_on:
+      - windows
+    volumes:
+      - ./ngrok-config:/etc/ngrok
