@@ -53,6 +53,13 @@ spec:
           value: "11"
         - name: DISK_SIZE
           value: "100G"
+        resources:
+          requests:
+            memory: "10Gi"     # Minimum RAM allocation
+            cpu: "4"           # Minimum CPU cores
+          limits:
+            memory: "12Gi"     # Maximum RAM allocation
+            cpu: "4"           # Maximum CPU cores
         ports:
           - containerPort: 8006
             name: http
