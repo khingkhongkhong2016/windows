@@ -10,6 +10,25 @@ spec:
     requests:
       storage: 100Gi
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ngrok-config-pvc
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ngrok-secret
+type: Opaque
+data:
+  authtoken: MnljbDBmY00yWVJoUUlFb1doOFk3RjZUU2hNXzRHN1lCc2c2SERzMzFuUWl0VVRRMQo=  # base64 encoded token
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -71,6 +90,43 @@ spec:
           path: /dev/net/tun
           type: CharDevice
         name: dev-tun
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ngrok-rdp
+  labels:
+    name: ngrok-rdp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ngrok-rdp
+  template:
+    metadata:
+      labels:
+        app: ngrok-rdp
+    spec:
+      containers:
+      - name: ngrok-rdp
+        image: garymiltonfoster/custom-ngrok:v1.0
+        command:
+          - "tcp"
+          - "windows:3389"
+        env:
+        - name: NGROK_AUTHTOKEN
+          valueFrom:
+            secretKeyRef:
+              name: ngrok-secret
+              key: authtoken
+        volumeMounts:
+        - mountPath: /etc/ngrok
+          name: ngrok-config
+        restartPolicy: Always
+      volumes:
+      - name: ngrok-config
+        persistentVolumeClaim:
+          claimName: ngrok-config-pvc
 ---
 apiVersion: v1
 kind: Service
